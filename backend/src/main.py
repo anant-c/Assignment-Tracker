@@ -4,13 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from conf.db import get_db
 from routes.user_routes import router
+from dotenv import load_dotenv
 
 
+load_dotenv()
 app = FastAPI()
 
 origins = [
     "http://localhost:5173",
     "http://localhost:8080",
+    "*"
 ]
 
 app.add_middleware(
