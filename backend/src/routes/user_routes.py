@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends
+from models.db_models import Teacher
 from controllers.teacher_controller import create_teacher , signinTeacher
 from controllers.student_controller import create_student, signinStudent
 from pydantic import BaseModel , Field, EmailStr
 from sqlalchemy.orm import Session
 from conf.db import get_db
+from middlewares.student_authMiddleware import verify_student
+from middlewares.teacher_authMiddleware import verify_teacher
 
 signup_router = APIRouter()
 signin_router = APIRouter() 
+student_router = APIRouter()
 
 class TeacherCreate(BaseModel):
     username: str
@@ -18,6 +22,9 @@ class TeacherCreate(BaseModel):
     email: EmailStr 
     password: str
 
+class TeacherSignin(BaseModel):
+    email: EmailStr
+    password: str
 
 class StudentCreate(BaseModel):
     username: str
@@ -32,11 +39,6 @@ class StudentCreate(BaseModel):
 class StudentSignin(BaseModel):
     email: EmailStr
     password: str
-
-class TeacherSignin(BaseModel):
-    email: EmailStr
-    password: str
-
 
 @signup_router.post("/teachers/")
 def signup_teacher(teacher: TeacherCreate, db: Session = Depends(get_db)):
@@ -83,3 +85,12 @@ def signin_student(student: StudentSignin, db: Session = Depends(get_db)):
         password=student.password,
         db=db
     )
+
+@student_router.get("/")
+def fetch_teachers(db: Session = Depends(get_db), username: str = Depends(verify_student)):
+    """
+    Fetch all teachers.
+    Requires student authentication.
+    """
+    print(f"Authenticated student: {username}")
+    return db.query(Teacher).all()
