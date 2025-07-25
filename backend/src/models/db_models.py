@@ -30,7 +30,7 @@ class Teacher(Base):
 class Student(Base):
     __tablename__ = "students"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     username = Column(String, unique=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)

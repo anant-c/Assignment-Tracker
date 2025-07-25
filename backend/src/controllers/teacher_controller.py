@@ -35,3 +35,20 @@ def create_teacher(db: Session, username: str, first_name: str, last_name: str, 
     db.refresh(new_teacher)
     
     return {"message": "Teacher created successfully", "token": token, "teacher_id": str(new_teacher.id)}
+
+
+def signinTeacher(email: str, password: str, db: Session):
+    if not email or not password:
+        raise ValueError("Email and password are required")
+
+    teacher = db.query(Teacher).filter(Teacher.email == email.strip()).first()
+    if not teacher:
+        raise ValueError("Invalid email or password")
+
+    password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    if not password_context.verify(password, teacher.password):
+        raise ValueError("Invalid password")
+
+    token = jwt.encode({"sub": teacher.username}, os.getenv("JWT_SECRET_KEY"), algorithm=os.getenv("JWT_ALGO"))
+    
+    return {"message": "Signin successful", "token": token, "teacher_id": str(teacher.id)}
