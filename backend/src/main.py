@@ -3,7 +3,7 @@ from typing import List, Annotated
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from conf.db import get_db
-from routes.user_routes import signup_router, signin_router, student_router
+from routes.user_routes import signup_router, signin_router, student_router, teacher_router
 from dotenv import load_dotenv
 
 
@@ -27,5 +27,6 @@ app.add_middleware(
 app.include_router(signup_router, prefix="/signup")
 app.include_router(signin_router, prefix="/login")
 app.include_router(student_router, prefix="/fetch-teachers")
+app.include_router(teacher_router, prefix="/teachers")
 
 

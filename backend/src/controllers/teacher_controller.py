@@ -1,6 +1,8 @@
 import os
 from sqlalchemy.orm import Session
 from models.db_models import Teacher
+from fastapi import HTTPException, Depends
+from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -52,3 +54,32 @@ def signinTeacher(email: str, password: str, db: Session):
     token = jwt.encode({"sub": teacher.username}, os.getenv("JWT_SECRET_KEY"), algorithm=os.getenv("JWT_ALGO"))
     
     return {"message": "Signin successful", "token": token, "teacher_id": str(teacher.id)}
+
+
+def update_teacher_profile(id, updateTeacher, db, username):
+    print(f"Authenticated teacher: {username}")
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # Ensure the authenticated teacher can only update their own profile
+    if(username != db.query(Teacher).filter(Teacher.id == id).first().username):
+        raise HTTPException(status_code=403, detail="Not authorized to update this profile")
+
+    teacher = db.query(Teacher).filter(Teacher.id == id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    # Update only the fields that are provided in the request
+    for key, value in updateTeacher.dict(exclude_unset=True).items():
+        if value is not None:
+            if key == "password":
+                # Hash the password if it's being updated
+                password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                value = password_context.hash(value)
+
+            setattr(teacher, key, value)
+
+    db.commit()
+    db.refresh(teacher)
+    return teacher
