@@ -60,7 +60,7 @@ class Answer(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True)
     question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False)
-    answer = Column(String, nullable=False)
+    answer = Column(String, nullable=True)
     assignment_id = Column(UUID(as_uuid=True), ForeignKey("assignments.id"), nullable=False)
     student_id = Column(UUID(as_uuid=True), ForeignKey("students.id"), nullable=False)
 

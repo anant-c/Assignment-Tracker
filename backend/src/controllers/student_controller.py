@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from models.db_models import Student
 from passlib.context import CryptContext
 import jwt
+
+from fastapi import HTTPException, Depends
 from jwt.exceptions import InvalidTokenError
 
 def create_student(db: Session, username: str, first_name: str, last_name: str, role: str, mobile: str , college: str, email: str, password: str):
@@ -51,3 +53,32 @@ def signinStudent(email: str, password: str, db: Session):
     token = jwt.encode({"sub": student.username}, os.getenv("JWT_SECRET_KEY"), algorithm=os.getenv("JWT_ALGO"))
 
     return {"message": "Signin successful", "token": token, "student_id": str(student.id)}
+
+def update_student_profile(id, updateStudent, db, username):
+    print(f"Authenticated student: {username}")
+
+    if not username:
+        raise HTTPException(status_code= 401, detail="Unauthorized")
+    
+    student = db.query(Student).filter(Student.id == id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Ensure the authenticated user is the one owner of this account to modify
+    if( username != db.query(Student).filter(Student.id == id).first().username):
+        raise HTTPException(status_code=403, detail= "Not authorized to update this account.")
+    
+
+    for key,value in updateStudent.dict(exclude_unset=True).items():
+        if value is not None:
+            if(key == "password"):
+                password_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
+                value = password_context.hash(value)
+            
+            setattr(student, key, value)
+
+    
+    db.commit()
+    db.refresh(student)
+    
+    return student

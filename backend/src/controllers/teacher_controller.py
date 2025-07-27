@@ -62,13 +62,14 @@ def update_teacher_profile(id, updateTeacher, db, username):
     if not username:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
+    teacher = db.query(Teacher).filter(Teacher.id == id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    
     # Ensure the authenticated teacher can only update their own profile
     if(username != db.query(Teacher).filter(Teacher.id == id).first().username):
         raise HTTPException(status_code=403, detail="Not authorized to update this profile")
 
-    teacher = db.query(Teacher).filter(Teacher.id == id).first()
-    if not teacher:
-        raise HTTPException(status_code=404, detail="Teacher not found")
 
     # Update only the fields that are provided in the request
     for key, value in updateTeacher.dict(exclude_unset=True).items():
