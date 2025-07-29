@@ -48,7 +48,7 @@ class Student(Base):
 class Question(Base):
     __tablename__ = "questions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     text = Column(String, nullable=False)
     assignment_id = Column(UUID(as_uuid=True), ForeignKey("assignments.id"), nullable=False)
 
@@ -58,7 +58,7 @@ class Question(Base):
 class Answer(Base):
     __tablename__ = "answers"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False)
     answer = Column(String, nullable=True)
     assignment_id = Column(UUID(as_uuid=True), ForeignKey("assignments.id"), nullable=False)
@@ -72,7 +72,7 @@ class Answer(Base):
 class Result(Base):
     __tablename__ = "results"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     student_id = Column(UUID(as_uuid=True), ForeignKey("students.id"), nullable=False)
     assignment_id = Column(UUID(as_uuid=True), ForeignKey("assignments.id"), nullable=False)
     score = Column(Integer, nullable=True)  # Score can be null if not graded yet
@@ -84,7 +84,7 @@ class Result(Base):
 class Assignment(Base):
     __tablename__ = "assignments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)  
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)  
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     due_date = Column(DateTime, nullable=True, index=True, default=None)
@@ -100,7 +100,7 @@ class Assignment(Base):
 class AssignmentService(Base):
     __tablename__ = "assignment_services"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     teacher_id = Column(UUID(as_uuid=True), ForeignKey("teachers.id"), nullable=False)

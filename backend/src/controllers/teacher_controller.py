@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher
+from models.db_models import Teacher, AssignmentService
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
@@ -84,3 +84,22 @@ def update_teacher_profile(id, updateTeacher, db, username):
     db.commit()
     db.refresh(teacher)
     return teacher
+
+def create_assignment_service(name, description, teacher_id, db, username):
+    """
+    Create a new assignment service.
+    Requires teacher authentication.
+    """
+    print(f"Authenticated teacher: {username}")
+    new_service = AssignmentService(
+        name=name,
+        description=description,
+        teacher_id=teacher_id
+    )
+
+    db.add(new_service)
+    db.commit()
+    db.refresh(new_service)
+
+
+    return {"message": f"Assignment service {new_service.id} created successfully by", "teacher: ": username}

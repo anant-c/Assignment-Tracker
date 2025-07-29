@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service
 from controllers.student_controller import create_student, signinStudent , update_student_profile
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 from schemas.student_schema import StudentCreate, StudentSignin, StudentUpdate
+from schemas.assignment_schema import assignment_service, assignment, question, answer, result
 from sqlalchemy.orm import Session
 from conf.db import get_db
 from uuid import UUID
@@ -71,17 +72,21 @@ def fetch_student_by_id(id: UUID, db: Session = Depends(get_db), username: str =
     return student
 
 @teacher_router.post("/")
-def create_service(db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+def create_service(assignment_service: assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Create a service for the teacher.
     Requires teacher authentication.
     """
     print(f"Authenticated teacher: {username}")
     # Logic to create a service can be added here
-    
 
-
-    return {"message": "Service created successfully", "teacher": username}
+    return create_assignment_service(
+        assignment_service.name,
+        assignment_service.description,
+        teacher_id=assignment_service.teacher_id,
+        db=db,
+        username=username
+    )
 
 # -------------------------------------------------------------------------------------------STuDENT ROUTES------------------------------------------------------------------------------------------- 
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
