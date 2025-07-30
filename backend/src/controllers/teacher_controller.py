@@ -103,3 +103,4 @@ def create_assignment_service(name, description, teacher_id, db, username):
 
 
     return {"message": f"Assignment service {new_service.id} created successfully by", "teacher: ": username}
+

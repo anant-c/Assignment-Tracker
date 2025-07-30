@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student
 from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service
 from controllers.student_controller import create_student, signinStudent , update_student_profile
+from controllers.assignment_controller import fetch_assignment_services
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 from schemas.student_schema import StudentCreate, StudentSignin, StudentUpdate
 from schemas.assignment_schema import assignment_service, assignment, question, answer, result
@@ -10,12 +11,13 @@ from conf.db import get_db
 from uuid import UUID
 from middlewares.student_authMiddleware import verify_student
 from middlewares.teacher_authMiddleware import verify_teacher
-
+from middlewares.user_authMiddleware import verify_user
 
 signup_router = APIRouter()
 signin_router = APIRouter() 
 student_router = APIRouter()
 teacher_router = APIRouter()
+assignment_router = APIRouter()
 
 
 @signup_router.post("/teachers/")
@@ -71,7 +73,7 @@ def fetch_student_by_id(id: UUID, db: Session = Depends(get_db), username: str =
         raise HTTPException(status_code=404, detail="Student not found")
     return student
 
-@teacher_router.post("/")
+@assignment_router.post("/")
 def create_service(assignment_service: assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Create a service for the teacher.
@@ -87,6 +89,9 @@ def create_service(assignment_service: assignment_service, db: Session = Depends
         db=db,
         username=username
     )
+@assignment_router.get("/{id}")
+def get_assignment_services(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_user)):
+    return fetch_assignment_services(id, db, username)
 
 # -------------------------------------------------------------------------------------------STuDENT ROUTES------------------------------------------------------------------------------------------- 
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
