@@ -5,6 +5,7 @@ from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
+from schemas.assignment_schema import update_assignment_service
 import jwt
 from uuid import UUID 
 
@@ -86,7 +87,7 @@ def update_teacher_profile(id: UUID, updateTeacher: TeacherUpdate, db: Session, 
     db.refresh(teacher)
     return teacher
 
-def create_assignment_service(name, description, teacher_id, db, username):
+def create_assignment_service(name:str, description:str, teacher_id:UUID, db:Session, username:str):
     """
     Create a new assignment service.
     Requires teacher authentication.
@@ -104,4 +105,31 @@ def create_assignment_service(name, description, teacher_id, db, username):
 
 
     return {"message": f"Assignment service {new_service.id} created successfully by", "teacher: ": username}
+
+def update_assigment_service(id:UUID, update_service: update_assignment_service,  db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    service = db.query(AssignmentService).filter(AssignmentService.id == id).first()
+    teacher = db.query(Teacher).filter(Teacher.id == service.teacher_id).first()
+
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found.")
+    
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found corresponding to the service.")
+    
+    if teacher.username != username:
+        print(teacher.username, username)
+        raise HTTPException(status_code=401, detail="You are not authorized to update this service.")
+    
+    # update only the fields which are available
+    for key, value in update_service.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(service, key, value)
+
+    db.commit()
+    db.refresh(service)
+    return service
 

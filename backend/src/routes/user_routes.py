@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service
 from controllers.student_controller import create_student, signinStudent , update_student_profile
-from controllers.assignment_controller import fetch_assignment_services
+from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 from schemas.student_schema import StudentCreate, StudentSignin, StudentUpdate
-from schemas.assignment_schema import assignment_service, assignment, question, answer, result
+from schemas.assignment_schema import assignment_service, update_assignment_service ,assignment, question, answer, result
 from sqlalchemy.orm import Session
 from conf.db import get_db
 from uuid import UUID
@@ -82,9 +82,23 @@ def create_service(assignment_service: assignment_service, db: Session = Depends
         db=db,
         username=username
     )
+
+@assignment_router.put("/{id}")
+def edit_service(id: UUID, update_service: update_assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+    return update_assigment_service(id, update_service,db, username)
+
+# -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
+
+
+@assignment_router.get("/byteacher/{id}")
+def get_assignment_services_using_teacher_id(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_user)):
+    return fetch_assignment_services_byTeacher(id, db, username)
+
 @assignment_router.get("/{id}")
-def get_assignment_services(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_user)):
-    return fetch_assignment_services(id, db, username)
+def get_assignment_service_using_id(id:UUID, db: Session= Depends(get_db), username: str=Depends(verify_user)):
+    return fetch_assignment_service_using_id(id, db, username)
 
 # -------------------------------------------------------------------------------------------STuDENT ROUTES------------------------------------------------------------------------------------------- 
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------

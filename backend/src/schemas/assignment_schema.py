@@ -7,6 +7,9 @@ class assignment_service(BaseModel):
     description: str | None = None
     teacher_id: UUID4 
 
+class update_assignment_service(BaseModel):
+    name: str | None = None
+    description: str | None = None
 
 class assignment(BaseModel):
     title: str

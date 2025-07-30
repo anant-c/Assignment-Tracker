@@ -8,7 +8,7 @@ import jwt
 from uuid import UUID
 
 
-def fetch_assignment_services(id: UUID, db: Session, username: str):
+def fetch_assignment_services_byTeacher(id: UUID, db: Session, username: str):
 
     if not username:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -21,4 +21,19 @@ def fetch_assignment_services(id: UUID, db: Session, username: str):
     return {
         "message": f"{teacher} Teacher's assignment services fetched successfully.",
         "services": services
+    }
+
+def fetch_assignment_service_using_id(id: UUID, db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    service = db.query(AssignmentService).filter(AssignmentService.id == id).all()
+
+    if not service:
+        raise HTTPException(status_code=404, detail=f"No service found by id: {id}")
+    
+    return {
+        "message": f"Successfully found the service with id: {id}",
+        "service": service
     }
