@@ -2,33 +2,34 @@ import os
 from sqlalchemy.orm import Session
 from models.db_models import Student
 from passlib.context import CryptContext
+from schemas.student_schema import StudentCreate, StudentUpdate, StudentSignin
 import jwt
-
+from uuid import UUID
 from fastapi import HTTPException, Depends
 from jwt.exceptions import InvalidTokenError
 
-def create_student(db: Session, username: str, first_name: str, last_name: str, role: str, mobile: str , college: str, email: str, password: str):
-    if(not username or not first_name or not last_name or not role or not college or not email or not password):
+def create_student(db: Session, student: StudentCreate):
+    if(not student.username or not student.first_name or not student.last_name or not student.role or not student.college or not student.email or not student.password):
         raise ValueError("All fields are required")
 
-    if(db.query(Student).filter(Student.username == username.strip()).first()):
+    if(db.query(Student).filter(Student.username == student.username.strip()).first()):
         raise ValueError("Username already exists")
 
-    if(db.query(Student).filter(Student.email == email.strip()).first()):
+    if(db.query(Student).filter(Student.email == student.email.strip()).first()):
         raise ValueError("Email already exists")
     
     # Hash the password
     password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    hashed_password = password_context.hash(password)
+    hashed_password = password_context.hash(student.password)
 
     new_student = Student(
-        username=username,
-        first_name=first_name,
-        last_name=last_name,
-        role=role,
-        mobile=mobile,
-        college=college,
-        email=email,
+        username=student.username,
+        first_name=student.first_name,
+        last_name=student.last_name,
+        role=student.role,
+        mobile=student.mobile,
+        college=student.college,
+        email=student.email,
         password=hashed_password
     )
     token = jwt.encode({"sub": new_student.username}, os.getenv("JWT_SECRET_KEY"), algorithm= os.getenv("JWT_ALGO"))
@@ -54,7 +55,7 @@ def signinStudent(email: str, password: str, db: Session):
 
     return {"message": "Signin successful", "token": token, "student_id": str(student.id)}
 
-def update_student_profile(id, updateStudent, db, username):
+def update_student_profile(id:UUID, updateStudent: StudentUpdate, db: Session, username: str):
     print(f"Authenticated student: {username}")
 
     if not username:

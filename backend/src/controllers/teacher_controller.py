@@ -4,31 +4,32 @@ from models.db_models import Teacher, AssignmentService
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
+from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 import jwt
-from jwt.exceptions import InvalidTokenError
+from uuid import UUID 
 
-def create_teacher(db: Session, username: str, first_name: str, last_name: str, role: str, mobile: str , college: str, email: str, password: str):
-    if(not username or not first_name or not last_name or not role or not college or not email or not password):
+def create_teacher(db: Session, teacher: TeacherCreate):
+    if(not teacher.username or not teacher.first_name or not teacher.last_name or not teacher.role or not teacher.college or not teacher.email or not teacher.password):
         raise ValueError("All fields are required")
 
-    if(db.query(Teacher).filter(Teacher.username == username.strip()).first()):
+    if(db.query(Teacher).filter(Teacher.username == teacher.username.strip()).first()):
         raise ValueError("Username already exists")
 
-    if(db.query(Teacher).filter(Teacher.email == email.strip()).first()):
+    if(db.query(Teacher).filter(Teacher.email == teacher.email.strip()).first()):
         raise ValueError("Email already exists")
     
     # Hash the password
     password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    hashed_password = password_context.hash(password)
+    hashed_password = password_context.hash(teacher.password)
 
     new_teacher = Teacher(
-        username=username,
-        first_name=first_name,
-        last_name=last_name,
-        role=role,
-        mobile=mobile,
-        college=college,
-        email=email,
+        username=teacher.username,
+        first_name=teacher.first_name,
+        last_name=teacher.last_name,
+        role=teacher.role,
+        mobile=teacher.mobile,
+        college=teacher.college,
+        email=teacher.email,
         password=hashed_password
     )
     token = jwt.encode({"sub": new_teacher.username}, os.getenv("JWT_SECRET_KEY"), algorithm= os.getenv("JWT_ALGO"))
@@ -56,7 +57,7 @@ def signinTeacher(email: str, password: str, db: Session):
     return {"message": "Signin successful", "token": token, "teacher_id": str(teacher.id)}
 
 
-def update_teacher_profile(id, updateTeacher, db, username):
+def update_teacher_profile(id: UUID, updateTeacher: TeacherUpdate, db: Session, username: str):
     print(f"Authenticated teacher: {username}")
 
     if not username:
