@@ -24,10 +24,10 @@ def verify_user(credentials: HTTPAuthorizationCredentials = Depends(security), d
                 detail="Invalid token payload"
             )
 
-        if db.query(Teacher).filter(Teacher.username == username).first() is None and db.query(Student).filter(Student.username == username).first() is None:
-            print("hi")
-            print(db.query(Teacher).filter(Teacher.username == username).first())
-            print(db.query(Student).filter(Student.username == username).first())
+        teacher = db.query(Teacher).filter(Teacher.username == username).first()
+        student = db.query(Student).filter(Student.username == username).first()
+        if teacher is None and student is None:
+        
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User not found"

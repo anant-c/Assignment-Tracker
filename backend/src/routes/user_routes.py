@@ -25,14 +25,7 @@ def signup_teacher(teacher: TeacherCreate, db: Session = Depends(get_db)):
     teacher.role = "teacher"  # Ensure the role is set to teacher
     return create_teacher(
         db,
-        teacher.username,
-        teacher.first_name,
-        teacher.last_name,
-        teacher.role,
-        teacher.mobile,
-        teacher.college,
-        teacher.email,
-        teacher.password
+        teacher=teacher
     )
 
 
@@ -102,14 +95,7 @@ def signup_student(student: StudentCreate, db: Session = Depends(get_db)):
     student.role = "student"  # Ensure the role is set to student
     return create_student(
         db,
-        student.username,
-        student.first_name,
-        student.last_name,
-        student.role,
-        student.mobile,
-        student.college,
-        student.email,
-        student.password
+        student=student
     )
 
 @signin_router.post("/students/")

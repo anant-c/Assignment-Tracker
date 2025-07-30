@@ -5,9 +5,10 @@ from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 import jwt
+from uuid import UUID
 
 
-def fetch_assignment_services(id, db, username):
+def fetch_assignment_services(id: UUID, db: Session, username: str):
 
     if not username:
         raise HTTPException(status_code=401, detail="Unauthorized")
