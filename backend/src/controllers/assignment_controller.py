@@ -37,3 +37,4 @@ def fetch_assignment_service_using_id(id: UUID, db: Session, username: str):
         "message": f"Successfully found the service with id: {id}",
         "service": service
     }
+

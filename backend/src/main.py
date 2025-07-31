@@ -27,10 +27,7 @@ app.add_middleware(
 app.include_router(signup_router, prefix="/signup")
 app.include_router(signin_router, prefix="/login")
 # students
-app.include_router(student_router, prefix="/fetch-teachers")
-app.include_router(student_router, prefix="/students")
+app.include_router(student_router)
 # teachers
-app.include_router(teacher_router, prefix="/teachers")
-app.include_router(teacher_router, prefix="/fetch-students")
-app.include_router(assignment_router, prefix="/create-service")
-app.include_router(assignment_router, prefix="/services")
+app.include_router(teacher_router)
+app.include_router(assignment_router)

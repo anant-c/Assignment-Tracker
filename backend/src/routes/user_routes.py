@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher
 from controllers.student_controller import create_student, signinStudent , update_student_profile
 from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
@@ -29,7 +29,7 @@ def signup_teacher(teacher: TeacherCreate, db: Session = Depends(get_db)):
     )
 
 
-@signin_router.post("/teachers/")
+@signin_router.post("/teachers/")   
 def signin_teacher(teacher: TeacherSignin, db: Session = Depends(get_db)):
     return signinTeacher(
         email=teacher.email,
@@ -37,15 +37,15 @@ def signin_teacher(teacher: TeacherSignin, db: Session = Depends(get_db)):
         db=db
     )
 
-@teacher_router.put("/{id}")
-def update_profile(id: UUID, updateTeacher: TeacherUpdate, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+@teacher_router.put("/teachers/{id}")
+def update_teacher_profile(id: UUID, updateTeacher: TeacherUpdate, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Update teacher profile by ID.
     Requires teacher authentication.
     """
     return update_teacher_profile(id, updateTeacher, db, username)
 
-@teacher_router.get("/")
+@teacher_router.get("/fetch-students")
 def fetch_students(db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Fetch all students.
@@ -54,7 +54,7 @@ def fetch_students(db: Session = Depends(get_db), username: str = Depends(verify
     print(f"Authenticated teacher: {username}")
     return db.query(Student).all()
 
-@teacher_router.get("/{id}")
+@teacher_router.get("/fetch-students/{id}")
 def fetch_student_by_id(id: UUID, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Fetch a student by ID.
@@ -66,7 +66,7 @@ def fetch_student_by_id(id: UUID, db: Session = Depends(get_db), username: str =
         raise HTTPException(status_code=404, detail="Student not found")
     return student
 
-@assignment_router.post("/")
+@assignment_router.post("/create-service")
 def create_service(assignment_service: assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     """
     Create a service for the teacher.
@@ -83,7 +83,7 @@ def create_service(assignment_service: assignment_service, db: Session = Depends
         username=username
     )
 
-@assignment_router.put("/{id}")
+@assignment_router.put("/services/{id}")
 def edit_service(id: UUID, update_service: update_assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     return update_assigment_service(id, update_service,db, username)
 
@@ -92,11 +92,15 @@ def edit_service(id: UUID, update_service: update_assignment_service, db: Sessio
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
 
 
-@assignment_router.get("/byteacher/{id}")
+@assignment_router.get("/services/byteacher/{id}")
 def get_assignment_services_using_teacher_id(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_user)):
     return fetch_assignment_services_byTeacher(id, db, username)
 
-@assignment_router.get("/{id}")
+@assignment_router.delete("/services/byteacher/{id}")
+def delete_assignment_services_using_teacher_id(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_teacher)):
+    return delete_assignment_services_byTeacher(id, db, username)
+
+@assignment_router.get("/services/{id}")
 def get_assignment_service_using_id(id:UUID, db: Session= Depends(get_db), username: str=Depends(verify_user)):
     return fetch_assignment_service_using_id(id, db, username)
 
@@ -120,8 +124,8 @@ def signin_student(student: StudentSignin, db: Session = Depends(get_db)):
         db=db
     )
 
-@student_router.put("/{id}")
-def update_profile(id: UUID, updateStudent: StudentUpdate, db: Session = Depends(get_db), username: str = Depends(verify_student)):
+@student_router.put("/students/{id}")
+def update_student_profile(id: UUID, updateStudent: StudentUpdate, db: Session = Depends(get_db), username: str = Depends(verify_student)):
     """
     Update student profile by ID.
     Requires student authentication.
@@ -129,7 +133,7 @@ def update_profile(id: UUID, updateStudent: StudentUpdate, db: Session = Depends
     return update_student_profile(id, updateStudent, db, username)
 
 
-@student_router.get("/")
+@student_router.get("/fetch-teachers")
 def fetch_teachers(db: Session = Depends(get_db), username: str = Depends(verify_student)):
     """
     Fetch all teachers.
@@ -138,7 +142,7 @@ def fetch_teachers(db: Session = Depends(get_db), username: str = Depends(verify
     print(f"Authenticated student: {username}")
     return db.query(Teacher).all()
 
-@student_router.get("/{id}")
+@student_router.get("/fetch-teachers/{id}")
 def fetch_teacher_by_id(id: UUID, db: Session = Depends(get_db), username: str = Depends(verify_student)):
     """
     Fetch a teacher by ID.

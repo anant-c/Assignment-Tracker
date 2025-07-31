@@ -112,10 +112,10 @@ def update_assigment_service(id:UUID, update_service: update_assignment_service,
         raise HTTPException(status_code=401, detail="Unauthorized")
     
     service = db.query(AssignmentService).filter(AssignmentService.id == id).first()
-    teacher = db.query(Teacher).filter(Teacher.id == service.teacher_id).first()
-
     if not service:
         raise HTTPException(status_code=404, detail="Service not found.")
+    
+    teacher = db.query(Teacher).filter(Teacher.id == service.teacher_id).first()
     
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found corresponding to the service.")
@@ -132,4 +132,30 @@ def update_assigment_service(id:UUID, update_service: update_assignment_service,
     db.commit()
     db.refresh(service)
     return service
+
+def delete_assignment_services_byTeacher(id: UUID, db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+
+    service = db.query(AssignmentService).filter(AssignmentService.id == id).first()
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found.")
+
+
+    teacher = db.query(Teacher).filter(Teacher.id == service.teacher_id).first()
+    
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found corresponding to the service.")
+    
+    if teacher.username != username:
+        print(teacher.username, username)
+        raise HTTPException(status_code=401, detail="You are not authorized to delete this service.")
+
+
+    db.delete(service)
+    db.commit()
+
+    return {"message": "Service deleted successfully."}
 
