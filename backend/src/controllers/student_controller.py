@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Student
+from models.db_models import Student, AssignmentService
 from passlib.context import CryptContext
 from schemas.student_schema import StudentCreate, StudentUpdate, StudentSignin
 import jwt
@@ -83,3 +83,32 @@ def update_student_profile(id:UUID, updateStudent: StudentUpdate, db: Session, u
     db.refresh(student)
     
     return student
+
+# new thing i learnt, how to post in many-to-many using sqlalchemy orm
+def subscribe_assignmentService(id: UUID, db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    student = db.query(Student).filter(Student.username == username).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found.")
+    
+    service = db.query(AssignmentService).filter(AssignmentService.id == id).first()
+    if not service:
+        raise HTTPException(status_code=404, detail="Assignment Service not found.")
+    
+    # Check if the student is already subscribed:
+    if service in student.assignment_services:
+        return {
+            "message": f"User: {username} is already subscribed to Assignment Service: {service.name}"
+        }
+
+    # Add the subscription - append the service to student's assignment_services list
+    student.assignment_services.append(service)
+
+    db.commit()
+    db.refresh(student)
+
+    return {
+        "message": f"User: {username} subscribed successfully to Assignment Service: {service.name}"
+    }
