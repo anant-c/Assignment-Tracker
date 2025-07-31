@@ -1,11 +1,11 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher, AssignmentService
+from models.db_models import Teacher, AssignmentService, Assignment
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
-from schemas.assignment_schema import update_assignment_service
+from schemas.assignment_schema import update_assignment_service, assignment
 import jwt
 from uuid import UUID 
 
@@ -159,3 +159,38 @@ def delete_assignment_services_byTeacher(id: UUID, db: Session, username: str):
 
     return {"message": "Service deleted successfully."}
 
+def post_assignments(id: UUID, assignment: assignment, db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    service = db.query(AssignmentService).filter(AssignmentService.id == id).first()
+
+    if not service:
+        raise HTTPException(status_code=404, detail="Assignment Service not found, so cann't post assignment.")
+    
+    teacher_id = service.teacher_id
+
+    owner_teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+
+    if not owner_teacher:
+        raise HTTPException(status_code=404, detail="The teacher who created this service is not found.")
+    
+    if owner_teacher.username != username:
+        raise HTTPException(status_code=401, detail="You are not authorized to post assignments on this service.")
+    
+    newassignment = Assignment(
+        title=assignment.title,
+        description = assignment.description,
+        due_date = assignment.due_date,
+        status= assignment.status,
+        assignment_service_id = id
+    )
+
+    db.add(newassignment)
+    db.commit()
+    db.refresh(newassignment)
+
+    return {
+        "message": f"Assignment added by {owner_teacher.first_name} in {service.name} assignment service."
+    }

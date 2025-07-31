@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher, post_assignments
 from controllers.student_controller import create_student, signinStudent , update_student_profile, subscribe_assignmentService
 from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id, fetch_students_subscribedTo_a_service, fetch_assignment_service_subcribedBy_a_student
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
@@ -86,6 +86,10 @@ def create_service(assignment_service: assignment_service, db: Session = Depends
 @assignment_router.put("/services/{id}")
 def edit_service(id: UUID, update_service: update_assignment_service, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     return update_assigment_service(id, update_service,db, username)
+
+@teacher_router.post("/services/{id}/assignments")
+def create_assignment(id: UUID, create_assignments: assignment, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+    return post_assignments(id, create_assignments, db, username)
 
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------

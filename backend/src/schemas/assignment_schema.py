@@ -16,7 +16,7 @@ class assignment(BaseModel):
     description: str | None = None
     due_date: datetime | None = None
     status: str | None = None
-    asssignment_service_id: UUID4
+    asssignment_service_id: UUID4 | None = None
 
 class question(BaseModel):
     text: str

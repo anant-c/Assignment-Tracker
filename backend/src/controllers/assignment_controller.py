@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 from models.db_models import Teacher, AssignmentService, Student
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
-from passlib.context import CryptContext
-import jwt
 from uuid import UUID
 
 
