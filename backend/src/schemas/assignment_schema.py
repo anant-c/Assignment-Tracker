@@ -26,7 +26,10 @@ class assignment_update(BaseModel):
 
 class question(BaseModel):
     text: str
-    assignment_id: UUID4
+    assignment_id: UUID4 | None = None
+
+class question_update(BaseModel):
+    text: str | None = None
 
 class answer(BaseModel):
     question_id: UUID4

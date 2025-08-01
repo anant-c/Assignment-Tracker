@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher, AssignmentService, Student, Assignment
+from models.db_models import Teacher, AssignmentService, Student, Assignment, Question
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from uuid import UUID
@@ -95,4 +95,30 @@ def get_assignment_by_id(id:UUID, db:Session, username: str):
         "message": "Successfully fetched the assignment.",
         "assignment": assignment
     }
-    pass
+
+def get_questions_from_assignment(id: UUID, db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    questions = db.query(Question).filter(Question.assignment_id == id).all()
+
+    if not questions:
+        raise HTTPException(status_code=404, detail="No questions found.")
+    
+    return {
+        "message": "Question fetched successfully.",
+        "questions": questions
+    }
+
+def get_questions_using_id(id: UUID, db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    question = db.query(Question).filter(Question.id == id).first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail= f"Question with id:{id} not found.")
+    
+    return {
+        "question": question
+    }
