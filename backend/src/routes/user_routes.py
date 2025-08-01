@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models.db_models import Teacher, Student
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher, post_assignments
+from models.db_models import Teacher, Student, Assignment
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher, post_assignments, update_assignment, delete_assignment
 from controllers.student_controller import create_student, signinStudent , update_student_profile, subscribe_assignmentService
-from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id, fetch_students_subscribedTo_a_service, fetch_assignment_service_subcribedBy_a_student
+from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id, fetch_students_subscribedTo_a_service, fetch_assignment_service_subcribedBy_a_student, get_assignment_by_id
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 from schemas.student_schema import StudentCreate, StudentSignin, StudentUpdate
-from schemas.assignment_schema import assignment_service, update_assignment_service ,assignment, question, answer, result
+from schemas.assignment_schema import assignment_service, update_assignment_service ,assignment, assignment_update,question, answer, result
 from sqlalchemy.orm import Session
 from conf.db import get_db
 from uuid import UUID
@@ -91,6 +91,15 @@ def edit_service(id: UUID, update_service: update_assignment_service, db: Sessio
 def create_assignment(id: UUID, create_assignments: assignment, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
     return post_assignments(id, create_assignments, db, username)
 
+@teacher_router.put("/assignments/{id}")
+def edit_assignment(id:UUID, assignment_update: assignment_update, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+
+    return update_assignment(id, assignment_update, db, username)
+
+@teacher_router.delete("/assignments/{id}")
+def delete_assignments_by_teacher(id:UUID, db: Session= Depends(get_db), username: str = Depends(verify_teacher)):
+    return delete_assignment(id, db, username)
+
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
@@ -100,7 +109,7 @@ def create_assignment(id: UUID, create_assignments: assignment, db: Session = De
 def get_assignment_services_using_teacher_id(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_user)):
     return fetch_assignment_services_byTeacher(id, db, username)
 
-@assignment_router.delete("/services/byteacher/{id}")
+@assignment_router.delete("/assignment-services/{id}")
 def delete_assignment_services_using_teacher_id(id: UUID, db: Session= Depends(get_db), username: str= Depends(verify_teacher)):
     return delete_assignment_services_byTeacher(id, db, username)
 
@@ -120,8 +129,27 @@ def fetch_students_subscribedTo_service(id:UUID, db: Session=Depends(get_db), us
 def fetch_services_subscribedBy_student(id: UUID, db:Session=Depends(get_db), username: str= Depends(verify_user)):
     return fetch_assignment_service_subcribedBy_a_student(id, db, username)
 
+@assignment_router.get("/services/{id}/assignments")
+def fetch_assignments_by_service_id(id: UUID, db: Session = Depends(get_db), username: str = Depends(verify_user)):
+    """
+    Fetch assignments by service ID.
+    Requires user authentication.
+    """
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    assignments = db.query(Assignment).filter(Assignment.assignment_service_id == id).all()
 
-# -------------------------------------------------------------------------------------------STuDENT ROUTES------------------------------------------------------------------------------------------- 
+    if not assignments:
+        raise  HTTPException(status_code=404, detail=f"not found any assignments for service {id}")
+
+    return {"assignments":  assignments}
+
+@assignment_router.get("/assignments/{id}")
+def fetch_assignments_by_id(id:UUID, db:Session= Depends(get_db), username: str = Depends(verify_user)):
+    return get_assignment_by_id(id,db,username)
+
+# -------------------------------------------------------------------------------------------STUDENT ROUTES------------------------------------------------------------------------------------------- 
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
 

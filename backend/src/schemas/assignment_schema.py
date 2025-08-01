@@ -18,6 +18,12 @@ class assignment(BaseModel):
     status: str | None = None
     asssignment_service_id: UUID4 | None = None
 
+class assignment_update(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    due_date: datetime | None = None
+    status: str | None = None
+
 class question(BaseModel):
     text: str
     assignment_id: UUID4

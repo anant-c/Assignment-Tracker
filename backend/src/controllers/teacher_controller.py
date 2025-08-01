@@ -5,7 +5,7 @@ from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
-from schemas.assignment_schema import update_assignment_service, assignment
+from schemas.assignment_schema import update_assignment_service, assignment, assignment_update
 import jwt
 from uuid import UUID 
 
@@ -194,3 +194,68 @@ def post_assignments(id: UUID, assignment: assignment, db: Session, username: st
     return {
         "message": f"Assignment added by {owner_teacher.first_name} in {service.name} assignment service."
     }
+
+def update_assignment(id: UUID, assignment_update: assignment_update, db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    
+    assignment = db.query(Assignment).filter(Assignment.id == id).first()
+    
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found.")
+
+    service_id = assignment.assignment_service_id
+
+    service = db.query(AssignmentService).filter(AssignmentService.id == service_id).first()
+
+    if not service:
+        raise HTTPException(status_code=404, detail="Parent Service not found.")
+    
+    owner = db.query(Teacher).filter(service.teacher_id == Teacher.id).first()
+
+    if not owner:
+        raise HTTPException(status_code=404, detail="Teacher who owns this service not found.")
+    
+    if owner.username != username:
+        raise HTTPException(status_code=401, detail="You don't have access to this assignment service.")
+
+    for key, value in assignment_update.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(assignment, key, value)
+
+    db.commit()
+    db.refresh(assignment)
+
+    return assignment
+
+def delete_assignment(id: UUID, db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    
+    assignment = db.query(Assignment).filter(Assignment.id == id).first()
+    
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found.")
+
+    service_id = assignment.assignment_service_id
+
+    service = db.query(AssignmentService).filter(AssignmentService.id == service_id).first()
+
+    if not service:
+        raise HTTPException(status_code=404, detail="Parent Service not found.")
+    
+    owner = db.query(Teacher).filter(service.teacher_id == Teacher.id).first()
+
+    if not owner:
+        raise HTTPException(status_code=404, detail="Teacher who owns this service not found.")
+    
+    if owner.username != username:
+        raise HTTPException(status_code=401, detail="You don't have access to this assignment service.")
+    
+    db.delete(assignment)
+    db.commit()
+
+    return {"message": f"Deleted {assignment.id} successfully."}

@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher, AssignmentService, Student
+from models.db_models import Teacher, AssignmentService, Student, Assignment
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from uuid import UUID
@@ -81,3 +81,18 @@ def fetch_assignment_service_subcribedBy_a_student(id:UUID, db:Session, username
         "message": f"Fetched all subscribed services by student {student.first_name}.",
         "assignment_services" : assignment_services
     }
+
+def get_assignment_by_id(id:UUID, db:Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    assignment = db.query(Assignment).filter(Assignment.id == id).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail=f"Assignment with id:{id} not found.")
+    
+    return {
+        "message": "Successfully fetched the assignment.",
+        "assignment": assignment
+    }
+    pass
