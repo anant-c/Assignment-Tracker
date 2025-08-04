@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher, AssignmentService, Student, Assignment, Question
+from models.db_models import Teacher, AssignmentService, Student, Assignment, Question, Answer, Result
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from uuid import UUID
@@ -121,4 +121,108 @@ def get_questions_using_id(id: UUID, db: Session, username: str):
     
     return {
         "question": question
+    }
+
+def get_answers_of_question(id:UUID, db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    answers = db.query(Answer).filter(Answer.question_id == id).all()
+
+    if not answers:
+        raise HTTPException(status_code=404, detail=f"No answers found for question: {id}")
+
+    return {
+        "message" : "Answer fetched successfully.",
+        "answers": answers
+    }
+
+def get_answers_using_id(id:UUID, db:Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    answer = db.query(Answer).filter(Answer.id == id).first()
+
+    if not answer:
+        raise HTTPException(status_code=404, detail= f"Answer with id:{id} not found.")
+    
+    return {
+        "answer": answer
+    }
+
+def get_answers_by_student(id1:UUID, id2: UUID,id3:UUID ,db: Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    student = db.query(Student).filter(Student.id == id1).first()
+    if not student:
+        raise HTTPException(status_code=404, detail=f"Student with username {student.username} not found.")
+    
+    assignment_service = db.query(AssignmentService).filter(AssignmentService.id == id2).first()
+
+    if not assignment_service:
+        raise HTTPException(status_code=404, detail="Assignment service to which the answers are requested is not found.")
+
+    assignment = db.query(Assignment).filter(Assignment.id == id3).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment to which the answers are requested is not found.")
+    
+    
+    answers = db.query(Answer).filter(
+        Answer.student_id == id1,
+        Answer.assignment_id == id3
+        ).all()
+
+    return {
+        "message": f"Answers fetched for all the questions in assignment id: {id3} by student username: {student.username}",
+        "answers": answers
+    }
+
+def get_answers_to_assignment(id: UUID, db:Session, username:str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    assignment = db.query(Assignment).filter(Assignment.id == id).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found for the answers.")
+    
+    answers = db.query(Answer).filter(Answer.assignment_id == id).all()
+
+    if not answers:
+        raise HTTPException(status_code=404, detail=f"No answers found for this assignment id:{id}")
+
+
+    return {
+        "message": f"Answers for assignment id: {id} fetched successfully.",
+        "answers": answers
+    }
+
+def get_results_to_assignment(id:UUID, db: Session, username:str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    results = db.query(Result).filter(Result.assignment_id== id).all()
+
+    if not results:
+        raise HTTPException(status_code=404, detail=f"No results found for the assignment with id: {id}")
+    
+    return {
+        "message": "Results fetched successfully for the assignment.",
+        "results": results
+    }
+
+def get_results_by_id(id:UUID, db:Session , username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    result = db.query(Result).filter(Result.id == id).first()
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Result not found.")
+    
+    return {
+        "message": "Result fetched successfully.",
+        "result" : result
     }

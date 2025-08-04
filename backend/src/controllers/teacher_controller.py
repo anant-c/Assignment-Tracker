@@ -1,11 +1,11 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Teacher, AssignmentService, Assignment, Question
+from models.db_models import Teacher, AssignmentService, Assignment, Question, Result
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
-from schemas.assignment_schema import update_assignment_service, assignment, assignment_update, question, question_update
+from schemas.assignment_schema import update_assignment_service, assignment, assignment_update, question, question_update, result, resultUpdate
 import jwt
 from uuid import UUID 
 
@@ -381,3 +381,88 @@ def delete_question(id:UUID, db: Session, username: str):
     return{
         "message": f"Question with id: {id} deleted successfully."
     }
+
+def create_result(id1:UUID, id2:UUID,result:result ,db:Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    assignment = db.query(Assignment).filter(Assignment.id == id1).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail=f"Assignment with id: {id1} not found to post the result.")
+    
+    assignment_service_id = assignment.assignment_service_id
+    assignment_service = db.query(AssignmentService).filter(AssignmentService.id == assignment_service_id).first()
+
+    if not assignment_service:
+        raise HTTPException(status_code=404, detail=f"Assignment Service for this result is not found, so cann't post result.")
+    
+    teacher_id = assignment_service.teacher_id
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+
+    if not teacher:
+        raise HTTPException(status_code=404, detail=f"Owner teacher for this assignment with username {teacher.username} is not found, so cann't post the result.")
+    
+    if username != teacher.username:
+        raise HTTPException(status_code=401, detail="Unauthorized access, you cann't post result for this assignment.")
+    
+    new_result = Result(
+        student_id= id2,
+        assignment_id= id1,
+        score = result.score,
+        feedback= result.feedback
+    )
+
+    db.add(new_result)
+    db.commit()
+    db.refresh(new_result)
+
+    return{
+        "message": f"Result for student with id:{id2} for assignment with title: {assignment.title} is published.",
+        "result": new_result
+    }
+
+def update_result(id:UUID, resultUpdate:resultUpdate, db:Session, username:str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    result = db.query(Result).filter(Result.id == id).first()
+
+    if not result:
+        raise HTTPException(status_code=401, detail="Result not found to update.")
+    
+    assignment_id = result.assignment_id
+    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment no found.")
+    
+    assignment_service_id = assignment.assignment_service_id
+    assignment_service = db.query(AssignmentService).filter(AssignmentService.id == assignment_service_id).first()
+
+    if not assignment_service:
+        raise HTTPException(status_code=404, detail="Assignment Service not found.")
+    
+    teacher_id = assignment_service.teacher_id
+
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found for this result to modify.")
+    
+    if teacher.username != username:
+        raise HTTPException(status_code=401, detail=f"Unauthorized access only teacher with username: {teacher.username} can modify this result.")
+    
+    for key,value in resultUpdate.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(result, key, value)
+    
+    db.commit()
+    db.refresh(result)
+
+    return {
+        "message": "Result updated successfully.",
+        "result": result
+    }
+    

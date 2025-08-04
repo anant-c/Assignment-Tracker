@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.db_models import Teacher, Student, Assignment
-from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher, post_assignments, update_assignment, delete_assignment, post_questions, update_question, delete_question
-from controllers.student_controller import create_student, signinStudent , update_student_profile, subscribe_assignmentService
-from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id, fetch_students_subscribedTo_a_service, fetch_assignment_service_subcribedBy_a_student, get_assignment_by_id, get_questions_from_assignment, get_questions_using_id
+from controllers.teacher_controller import create_teacher , signinTeacher, update_teacher_profile, create_assignment_service, update_assigment_service, delete_assignment_services_byTeacher, post_assignments, update_assignment, delete_assignment, post_questions, update_question, delete_question, create_result, update_result
+from controllers.student_controller import create_student, signinStudent , update_student_profile, subscribe_assignmentService, post_answer, get_student_result
+from controllers.assignment_controller import fetch_assignment_services_byTeacher, fetch_assignment_service_using_id, fetch_students_subscribedTo_a_service, fetch_assignment_service_subcribedBy_a_student, get_assignment_by_id, get_questions_from_assignment, get_questions_using_id, get_answers_of_question, get_answers_using_id, get_answers_by_student, get_answers_to_assignment, get_results_to_assignment, get_results_by_id
 from schemas.teacher_schema import TeacherCreate, TeacherUpdate, TeacherSignin
 from schemas.student_schema import StudentCreate, StudentSignin, StudentUpdate
-from schemas.assignment_schema import assignment_service, update_assignment_service ,assignment, assignment_update,question, question_update,answer, result
+from schemas.assignment_schema import assignment_service, update_assignment_service ,assignment, assignment_update,question, question_update,answer, result, resultUpdate
 from sqlalchemy.orm import Session
 from conf.db import get_db
 from uuid import UUID
@@ -112,6 +112,15 @@ def edit_questions(id:UUID, question_edit: question_update, db: Session=Depends(
 def delete_question_by_teacher(id:UUID, db: Session=Depends(get_db), username: str=Depends(verify_teacher)):
     return delete_question(id, db, username)
 
+@teacher_router.post("/assignment-services/assignment/{id1}/student/{id2}/result")
+def post_result(id1:UUID, id2:UUID, result: result ,db:Session=Depends(get_db), username= Depends(verify_teacher)):
+    return create_result(id1,id2, result,db, username)
+
+@teacher_router.put("/results/{id}")
+def edit_result(id:UUID,result: resultUpdate , db:Session= Depends(get_db), username = Depends(verify_teacher)):
+
+    return update_result(id, result, db, username)
+
 
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------ASSIGNMENT ROUTES-------------------------------------------------------------------------------------------
@@ -170,6 +179,29 @@ def fetch_questions(id:UUID, db:Session = Depends(get_db), username: str = Depen
 def fetch_question_using_id(id:UUID, db: Session=Depends(get_db), username: str = Depends(verify_user)):
     return get_questions_using_id(id, db, username)
 
+@assignment_router.get("/assignment-service/assignment/question/{id}/answer")
+def fetch_answers(id: UUID, db: Session=Depends(get_db), username: str= Depends(verify_user)):
+    return get_answers_of_question(id, db, username)
+
+@assignment_router.get("/assignment-service/assignment/question/answer/{id}")
+def fetch_answer_using_id(id: UUID, db: Session=Depends(get_db), username: str= Depends(verify_user)):
+    return get_answers_using_id(id, db, username)
+
+@assignment_router.get("/students/{id1}/assignment-services/{id2}/assignment/{id3}/answers")
+def fetch_answers_by_student(id1:UUID, id2:UUID, id3:UUID,db: Session=Depends(get_db), username: str =Depends(verify_teacher)):
+    return get_answers_by_student(id1,id2, id3,db,username)
+
+@assignment_router.get("/assignment-service/assignment/{id}/answers")
+def fetch_answers_to_assignment(id: UUID, db: Session = Depends(get_db), username: str = Depends(verify_teacher)):
+    return get_answers_to_assignment(id, db, username)
+
+@assignment_router.get("/assignment-service/assignment/{id}/results")
+def fetch_results_to_assignment(id:UUID, db:Session = Depends(get_db), username: str = Depends(verify_user)):
+    return get_results_to_assignment(id,db,username)
+
+@assignment_router.get("/results/{id}")
+def fetch_results_by_id(id:UUID, db:Session= Depends(get_db), username: str = Depends(verify_user)):
+    return get_results_by_id(id,db, username)
 # -------------------------------------------------------------------------------------------STUDENT ROUTES------------------------------------------------------------------------------------------- 
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------STUDENT ROUTES-------------------------------------------------------------------------------------------
@@ -219,3 +251,11 @@ def fetch_teacher_by_id(id: UUID, db: Session = Depends(get_db), username: str =
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
     return teacher
+
+@student_router.post("/assignment-service/assignment/question/{id}/answer")
+def post_answers_to_question(id:UUID, answer: answer, db: Session= Depends(get_db), username: str = Depends(verify_student)):
+    return post_answer(id,answer, db, username)
+
+@student_router.get("/students/{id}/results")
+def fetch_student_results(id:UUID, db: Session= Depends(get_db), username: str = Depends(verify_user)):
+    return get_student_result(id, db, username)

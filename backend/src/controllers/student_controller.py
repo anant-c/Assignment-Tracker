@@ -1,8 +1,9 @@
 import os
 from sqlalchemy.orm import Session
-from models.db_models import Student, AssignmentService
-from passlib.context import CryptContext
+from models.db_models import Student, AssignmentService, Question, Assignment, Answer, Result
+from passlib.context import CryptContext #type: ignore
 from schemas.student_schema import StudentCreate, StudentUpdate, StudentSignin
+from schemas.assignment_schema import answer
 import jwt
 from uuid import UUID
 from fastapi import HTTPException, Depends
@@ -111,4 +112,67 @@ def subscribe_assignmentService(id: UUID, db: Session, username: str):
 
     return {
         "message": f"User: {username} subscribed successfully to Assignment Service: {service.name}"
+    }
+
+def post_answer(id: UUID, answer: answer, db: Session, username: str):
+
+    if not username:
+        raise HTTPException(status_code=401, detail="User not found.")
+    
+    question = db.query(Question).filter(Question.id == id).first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail= "Question not found.")
+    
+    assignment_id = question.assignment_id
+
+    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment for the question not found.")
+    
+    service_id = assignment.assignment_service_id
+
+    service = db.query(AssignmentService).filter(AssignmentService.id == service_id).first()
+
+    if not service:
+        raise HTTPException(status_code=404, detail="Assignment Service for this question not found.")
+    
+    student = db.query(Student).filter(Student.username == username).first()
+
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found.")
+    
+    #------------ACCESS CHECK HERE---------------
+    if service not in student.assignment_services:
+        raise HTTPException(status_code=403, detail=f"Student {student.username} haven't subscribed to the assignment service for this question. So, cann't post answers to the question.")
+    
+    new_answer = Answer(
+        question_id= id,
+        answer= answer.answer_text,
+        assignment_id= assignment_id,
+        student_id = student.id
+    )
+
+    db.add(new_answer)
+    db.commit()
+    db.refresh(new_answer)
+
+    return {
+        "message": f"Answer: {new_answer.id} submitted successfully to Question: {id}.",
+        "answer": new_answer
+    }
+
+def get_student_result(id:UUID, db:Session, username: str):
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    results = db.query(Result).filter(Result.student_id==id).all()
+
+    if not results:
+        raise HTTPException(status_code=404, detail=f"Results not found for student with id {id}")
+
+    return {
+        "message": f"Results successfully fetched for student with id: {id}",
+        "result": results
     }

@@ -32,16 +32,20 @@ class question_update(BaseModel):
     text: str | None = None
 
 class answer(BaseModel):
-    question_id: UUID4
-    answer_text: str | None
-    asssignment_service_id: UUID4
-    student_id: UUID4
+    question_id: UUID4 | None = None
+    answer_text: str | None = None
+    asssignment_service_id: UUID4 | None = None
+    student_id: UUID4 | None = None
 
 
 class result(BaseModel):
-    student_id: UUID4
-    assignment_id: UUID4
+    student_id: UUID4 | None = None
+    assignment_id: UUID4 | None = None
     score: NonNegativeInt | None = None
+    feedback: str | None = None
+
+class resultUpdate(BaseModel):
+    score: NonNegativeInt
     feedback: str | None = None
     
 
