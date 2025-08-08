@@ -4,6 +4,9 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import {Button} from '@/components/ui/button'
 import HeroSectionOne from './components/hero-section-demo-1'
+import { Routes, Route, useNavigate } from 'react-router-dom'
+import StudentLogin from './components/pages/StudentLogin'
+import TeacherLogin from './components/pages/TeacherLogin'
 
 function App() {
 
@@ -18,7 +21,12 @@ function App() {
 
   return (
     <div className='max-w-screen min-h-screen overflow-x-hidden'>
-      <HeroSectionOne></HeroSectionOne>
+      <Routes>
+        <Route path="/" element={<HeroSectionOne />} />
+        <Route path="/login/student" element={<StudentLogin />} />
+        <Route path="/login/teacher" element={<TeacherLogin />} />
+      </Routes>
+
     </div>
       
   

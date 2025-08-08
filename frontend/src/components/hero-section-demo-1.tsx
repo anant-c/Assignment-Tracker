@@ -6,8 +6,10 @@ import {Spotlight} from "./ui/spotlight-new"
 import { BackgroundGradient } from "./ui/background-gradient";
 import { Button } from "./ui/button"
 import { FlipWords } from "./ui/flip-words";
+import { useNavigate } from "react-router-dom";
 
 export default function HeroSectionOne() {
+  const navigate = useNavigate();
   const words = ["posting", "tracking", "submitting", "evaluating"];
   return (
     <div className="relative flex flex-col items-center justify-center min-w-screen">
@@ -103,7 +105,7 @@ export default function HeroSectionOne() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Browse assignments, complete your work, and submit before the deadline — all in one place. Once graded, get instant feedback and view your results seamlessly.
             </p>
-            <Button className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
+            <Button onClick={() => navigate('/login/student')} className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
           </BackgroundGradient>
           <BackgroundGradient className="flex flex-col items-center rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
             <img
@@ -118,7 +120,7 @@ export default function HeroSectionOne() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Create and manage assignments effortlessly. Set deadlines, track student submissions, and provide grades and feedback with ease — all from a single dashboard.
             </p>
-            <Button className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
+            <Button onClick={() => navigate('/login/teacher')} className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
           </BackgroundGradient>
         </div>
       </div>
