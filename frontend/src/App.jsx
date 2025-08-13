@@ -5,8 +5,7 @@ import './App.css'
 import {Button} from '@/components/ui/button'
 import HeroSectionOne from './components/hero-section-demo-1'
 import { Routes, Route, useNavigate } from 'react-router-dom'
-import StudentLogin from './components/pages/StudentLogin'
-import TeacherLogin from './components/pages/TeacherLogin'
+import LogIn from './pages/LogIn.jsx'
 
 function App() {
 
@@ -23,8 +22,8 @@ function App() {
     <div className='max-w-screen min-h-screen overflow-x-hidden'>
       <Routes>
         <Route path="/" element={<HeroSectionOne />} />
-        <Route path="/login/student" element={<StudentLogin />} />
-        <Route path="/login/teacher" element={<TeacherLogin />} />
+        <Route path="/login/student" element={<LogIn role="student" />} />
+        <Route path="/login/teacher" element={<LogIn role="teacher" />} />
       </Routes>
 
     </div>
