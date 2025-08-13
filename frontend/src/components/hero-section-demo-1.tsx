@@ -6,12 +6,22 @@ import {Spotlight} from "./ui/spotlight-new"
 import { BackgroundGradient } from "./ui/background-gradient";
 import { Button } from "./ui/button"
 import { FlipWords } from "./ui/flip-words";
+import { useNavigate } from "react-router-dom";
 
 export default function HeroSectionOne() {
+  const navigate = useNavigate();
+
+  const scrollToLoginSection = ()=>{
+    const loginSection = document.getElementById("login-section");
+    if (loginSection) {
+      loginSection.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
   const words = ["posting", "tracking", "submitting", "evaluating"];
   return (
     <div className="relative flex flex-col items-center justify-center min-w-screen">
-      <Navbar />
+      <Navbar scrollToLoginSection={scrollToLoginSection}/>
       <Spotlight
       />
       <div className="absolute inset-y-0 z-10 left-0 h-full w-px bg-neutral-200/80 dark:bg-neutral-800/80">
@@ -89,7 +99,7 @@ export default function HeroSectionOne() {
               assignments
             </div>
           </div>
-          <div className="grid grid-cols-1 m-10 gap-10 lg:grid-cols-2 lg:gap-30">
+          <div className="grid grid-cols-1 m-10 gap-10 lg:grid-cols-2 lg:gap-30" id="login-section">
           <BackgroundGradient className="flex flex-col items-center rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
             <img
               src={`https://cdn-icons-png.flaticon.com/512/3534/3534172.png`}
@@ -103,7 +113,7 @@ export default function HeroSectionOne() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Browse assignments, complete your work, and submit before the deadline — all in one place. Once graded, get instant feedback and view your results seamlessly.
             </p>
-            <Button className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
+            <Button onClick={() => navigate('/login/student')} className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
           </BackgroundGradient>
           <BackgroundGradient className="flex flex-col items-center rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
             <img
@@ -118,7 +128,7 @@ export default function HeroSectionOne() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Create and manage assignments effortlessly. Set deadlines, track student submissions, and provide grades and feedback with ease — all from a single dashboard.
             </p>
-            <Button className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
+            <Button onClick={() => navigate('/login/teacher')} className="mt-4 py-2 px-4 text-md lg:text-lg cursor-pointer" variant="default" size="md">Log In</Button>
           </BackgroundGradient>
         </div>
       </div>
@@ -126,14 +136,15 @@ export default function HeroSectionOne() {
   );
 }
 
-const Navbar = () => {
+const Navbar = ({scrollToLoginSection}) => {
   return (
     <nav className="flex w-full items-center justify-between border-t border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
       <div className="flex items-center gap-2">
         <div className="size-7 rounded-full bg-gradient-to-br from-violet-500 to-pink-500" />
         <h1 className="text-base font-bold md:text-2xl">AssignMate</h1>
       </div>
-      <button className="w-24 cursor-pointer transform rounded-lg bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 md:w-32 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+      <button className="w-24 cursor-pointer transform rounded-lg bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 md:w-32 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+      onClick={scrollToLoginSection}>
         Login
       </button>
     </nav>
